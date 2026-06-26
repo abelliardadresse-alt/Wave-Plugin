@@ -1,0 +1,194 @@
+# ZombieWaves Configuration
+# Call of Duty Zombies inspired wave survival plugin
+
+# General settings
+general:
+  # Number of waves for the game
+  total-waves: 10
+  # Delay between waves in seconds
+  wave-delay: 30
+  # Minimum players required to start
+  min-players: 1
+  # Grace period before first wave in seconds
+  grace-period: 60
+
+# Wave settings
+waves:
+  # Base number of mobs per wave (before player scaling)
+  base-mobs: 5
+  # Additional mobs added per wave
+  mob-increase-per-wave: 3
+  # Player scaling: multiplier applied per player (1.0 = +100% per player)
+  # Example: base=10, multiplier=0.5, 3 players = 10 + (10 * 0.5 * 3) = 25 mobs
+  player-scaling-multiplier: 0.5
+  # Minimum players for scaling (at least 1 player always)
+  min-players-for-scaling: 1
+  # Spawn delay between each mob in ticks (20 ticks = 1 second)
+  spawn-delay: 10
+  # Maximum mobs that can be alive at once
+  max-active-mobs: 15
+
+# Mob types and their properties
+# The spawn-weight determines the percentage of each mob type
+mob-types:
+  zombie:
+    entity-type: ZOMBIE
+    base-health: 20.0
+    damage-multiplier: 1.0
+    gold-per-kill: 5
+    spawn-weight: 60
+  skeleton:
+    entity-type: SKELETON
+    base-health: 16.0
+    damage-multiplier: 1.2
+    gold-per-kill: 7
+    spawn-weight: 25
+  husk:
+    entity-type: HUSK
+    base-health: 24.0
+    damage-multiplier: 1.1
+    gold-per-kill: 6
+    spawn-weight: 15
+
+# Difficulty scaling per wave
+difficulty:
+  # Health multiplier per wave
+  health-multiplier: 0.15
+  # Damage multiplier per wave
+  damage-multiplier: 0.10
+  # Speed multiplier per wave (capped at 2.0)
+  speed-multiplier: 0.05
+
+# Spawn points configuration
+# Define multiple spawn point sets for different maps
+spawn-points:
+  # Default spawn points
+  default:
+    - world: "world"
+      x: 0
+      y: 64
+      z: 0
+    - world: "world"
+      x: 10
+      y: 64
+      z: 10
+    - world: "world"
+      x: -10
+      y: 64
+      z: 10
+
+# Shop items
+shop:
+  # Weapons
+  items:
+    iron-sword:
+      type: IRON_SWORD
+      name: "&6Iron Sword"
+      price: 50
+      description:
+        - "&7A reliable weapon"
+    diamond-sword:
+      type: DIAMOND_SWORD
+      name: "&bDiamond Sword"
+      price: 150
+      description:
+        - "&7A powerful weapon"
+    bow:
+      type: BOW
+      name: "&5Bow"
+      price: 100
+      description:
+        - "&7Ranged weapon"
+    arrow:
+      type: ARROW
+      name: "&aArrow x16"
+      price: 20
+      description:
+        - "&716 Arrows"
+      amount: 16
+    # Armor
+    iron-helmet:
+      type: IRON_HELMET
+      name: "&7Iron Helmet"
+      price: 75
+      description:
+        - "&7Basic protection"
+    iron-chestplate:
+      type: IRON_CHESTPLATE
+      name: "&7Iron Chestplate"
+      price: 100
+      description:
+        - "&7Better protection"
+    iron-leggings:
+      type: IRON_LEGGINGS
+      name: "&7Iron Leggings"
+      price: 90
+      description:
+        - "&7Better protection"
+    iron-boots:
+      type: IRON_BOOTS
+      name: "&7Iron Boots"
+      price: 60
+      description:
+        - "&7Better protection"
+    # Upgrades
+    speed-boots:
+      type: GOLDEN_BOOTS
+      name: "&6Speed Boots"
+      price: 200
+      description:
+        - "&7Grants speed effect"
+      enchantments:
+        - "PROTECTION:1"
+        - "THORNS:1"
+    sharp-sword:
+      type: DIAMOND_SWORD
+      name: "&cSharp Diamond Sword"
+      price: 300
+      description:
+        - "&7Sharpness II"
+      enchantments:
+        - "DAMAGE_ALL:2"
+
+# Scoreboard settings
+scoreboard:
+  # Title of the scoreboard
+  title: "&6&lZOMBIE WAVES"
+  # Update interval in ticks
+  update-interval: 20
+  lines:
+    - "&7&m---------------"
+    - "&eWave: &f{wave}/{max-wave}"
+    - "&eManche: &f{wave}"
+    - "&7&m---------------"
+    - "&6&lKills: &f{kills}"
+    - "&eMonsters killed: &f{kills}"
+    - "&7&m---------------"
+    - "&6&lGold: &f{gold}"
+    - "&eYour gold: &f{gold}"
+    - "&7&m---------------"
+    - "&aMobs remaining: &f{remaining}"
+    - "&cZombies left: &f{remaining}"
+    - "&7&m---------------"
+    - "&eNext wave in: &f{next-wave}s"
+    - "&7&m---------------"
+
+# Messages
+messages:
+  prefix: "&6&l[ZombieWaves] &r"
+  wave-start: "&eWave &6{wave} &ahas started!"
+  wave-end: "&eWave &6{wave} &ahas been cleared!"
+  game-start: "&aThe game has started! Prepare yourself!"
+  game-over: "&cGame Over! You reached wave {wave}"
+  no-permission: "&cYou don't have permission to use this command!"
+  not-enough-gold: "&cYou need more gold for this!"
+  purchase-success: "&aPurchase successful!"
+  purchase-failed: "&cPurchase failed!"
+  no-wave-running: "&cNo wave is currently running!"
+
+# Permissions
+permissions:
+  start-game: "zombiewaves.start"
+  stop-game: "zombiewaves.stop"
+  admin: "zombiewaves.admin"
+  shop: "zombiewaves.shop"

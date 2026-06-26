@@ -1,0 +1,13 @@
+name: ZombieWaves
+version: 1.2.0
+main: com.zombiewaves.ZombieWaves
+api-version: '1.21'
+description: A Call of Duty Zombies inspired wave survival plugin
+author: ZombieWavesTeam
+commands:
+  zwave:
+    description: Main command for ZombieWaves
+    usage: /<command> <join|leave|arenas|shop|gold>
+  zwaveadmin:
+    description: Admin commands for ZombieWaves
+    usage: /<command> <reload|setwave|stop>
