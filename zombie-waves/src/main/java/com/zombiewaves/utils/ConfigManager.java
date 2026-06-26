@@ -62,7 +62,7 @@ public class ConfigManager {
     }
 
     public int getSpawnDelay() {
-        return config.getInt("waves.spawn-delay", 10);
+        return config.getInt("waves.spawn-delay", 1); // 1 tick = instant spawn
     }
 
     public int getMaxActiveMobs() {

@@ -23,8 +23,8 @@ waves:
   player-scaling-multiplier: 0.5
   # Minimum players for scaling (at least 1 player always)
   min-players-for-scaling: 1
-  # Spawn delay between each mob in ticks (20 ticks = 1 second)
-  spawn-delay: 10
+  # Spawn delay between each mob in ticks (20 ticks = 1 second, 1 = instant)
+  spawn-delay: 1
   # Maximum mobs that can be alive at once
   max-active-mobs: 15
 

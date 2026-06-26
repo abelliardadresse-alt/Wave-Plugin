@@ -70,7 +70,7 @@ public class EntityDeathListener implements Listener {
             // Add kill to player stats
             plugin.getGameManager().addKill(killer);
             
-            // Calculate and add gold
+            // Calculate and add gold (proportional to shop item prices)
             ConfigManager.MobTypeConfig mobType = getMobTypeConfig(entity.getType().name().toLowerCase());
             int goldReward = mobType.getGoldPerKill();
             
@@ -80,10 +80,7 @@ public class EntityDeathListener implements Listener {
             
             plugin.getGameManager().addGold(killer, goldReward);
             
-            // Drop gold items on the ground
-            dropGoldItems(event.getEntity().getLocation(), goldReward);
-            
-            // Clear default drops (but we've already added gold drops)
+            // Clear default mob drops
             event.getDrops().clear();
             
             // Send message to player
@@ -94,16 +91,6 @@ public class EntityDeathListener implements Listener {
         // Notify wave manager that mob was killed
         if (arenaName != null) {
             plugin.getWaveManager().onMobKilled(arenaName, mobId);
-        }
-    }
-    
-    private void dropGoldItems(Location location, int amount) {
-        // Drop gold nuggets (1 nugget = 1 gold)
-        while (amount > 0) {
-            int stackSize = Math.min(amount, 64);
-            ItemStack gold = new ItemStack(Material.GOLD_NUGGET, stackSize);
-            location.getWorld().dropItemNaturally(location, gold);
-            amount -= stackSize;
         }
     }
     
