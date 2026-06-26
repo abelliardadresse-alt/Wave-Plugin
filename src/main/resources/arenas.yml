@@ -1,14 +1,19 @@
 # ZombieWaves Arenas Configuration
-# Add your arenas below using the format shown
-# This file is auto-generated. Use in-game commands to create arenas.
+# This file is auto-generated. Use in-game commands to manage arenas.
+
+# Global lobby and exit locations (used if arena doesn't have its own)
+# globalLobby: "world:0:64:0:0:0"
+# globalExit: "world:0:64:0:180:0"
 
 arenas:
   # Example arena (delete this and create your own):
   # example:
   #   name: example
+  #   lobbyLocation: "world:0:70:0:0:0"
+  #   gameSpawnLocation: "world:50:65:50:0:0"
   #   pos1: "world:0:64:0:0:0"
-  #   pos2: "world:100:80:100:0:0"
+  #   pos2: "world:100:100:100:0:0"
   #   spawnPoints:
   #     - "world:50:65:50:0:0"
-  #     - "world:50:65:-50:0:0"
+  #     - "world:-50:65:-50:0:0"
   #   active: false

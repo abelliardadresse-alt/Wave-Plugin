@@ -13,6 +13,8 @@ public class Arena implements ConfigurationSerializable {
     private Location pos1;
     private Location pos2;
     private final List<Location> spawnPoints;
+    private Location lobbyLocation;
+    private Location gameSpawnLocation;
     private boolean active;
 
     public Arena(String name) {
@@ -67,6 +69,22 @@ public class Arena implements ConfigurationSerializable {
         spawnPoints.clear();
     }
 
+    public Location getLobbyLocation() {
+        return lobbyLocation;
+    }
+
+    public void setLobbyLocation(Location lobbyLocation) {
+        this.lobbyLocation = lobbyLocation;
+    }
+
+    public Location getGameSpawnLocation() {
+        return gameSpawnLocation;
+    }
+
+    public void setGameSpawnLocation(Location gameSpawnLocation) {
+        this.gameSpawnLocation = gameSpawnLocation;
+    }
+
     public boolean isActive() {
         return active;
     }
@@ -76,7 +94,7 @@ public class Arena implements ConfigurationSerializable {
     }
 
     public boolean isComplete() {
-        return pos1 != null && pos2 != null && !spawnPoints.isEmpty();
+        return pos1 != null && pos2 != null && !spawnPoints.isEmpty() && lobbyLocation != null;
     }
 
     public World getWorld() {
@@ -149,6 +167,8 @@ public class Arena implements ConfigurationSerializable {
         map.put("pos1", pos1 != null ? locToString(pos1) : null);
         map.put("pos2", pos2 != null ? locToString(pos2) : null);
         map.put("spawnPoints", spawnPoints.stream().map(this::locToString).toList());
+        map.put("lobbyLocation", lobbyLocation != null ? locToString(lobbyLocation) : null);
+        map.put("gameSpawnLocation", gameSpawnLocation != null ? locToString(gameSpawnLocation) : null);
         map.put("active", active);
         return map;
     }
@@ -169,6 +189,12 @@ public class Arena implements ConfigurationSerializable {
             for (String locStr : spawnList) {
                 arena.addSpawnPoint(stringToLoc(locStr));
             }
+        }
+        if (map.containsKey("lobbyLocation") && map.get("lobbyLocation") != null) {
+            arena.setLobbyLocation(stringToLoc((String) map.get("lobbyLocation")));
+        }
+        if (map.containsKey("gameSpawnLocation") && map.get("gameSpawnLocation") != null) {
+            arena.setGameSpawnLocation(stringToLoc((String) map.get("gameSpawnLocation")));
         }
         if (map.containsKey("active")) {
             arena.setActive((Boolean) map.get("active"));

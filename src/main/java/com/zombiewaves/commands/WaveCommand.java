@@ -34,23 +34,10 @@ public class WaveCommand implements CommandExecutor, TabCompleter {
         String subCommand = args[0].toLowerCase();
 
         switch (subCommand) {
-            case "start" -> {
-                if (!sender.hasPermission("zombiewaves.start")) {
-                    sender.sendMessage(plugin.getConfigManager().getPrefix() + 
-                        plugin.getConfigManager().getMessage("no-permission"));
-                    return true;
-                }
-                if (plugin.getGameManager().isGameRunning()) {
-                    sender.sendMessage(plugin.getConfigManager().getPrefix() + 
-                        "§cGame is already running!");
-                    return true;
-                }
-                plugin.getGameManager().startGame();
-                plugin.getScoreboardManager().onGameStart();
-                sender.sendMessage(plugin.getConfigManager().getPrefix() + "§aGame started!");
-            }
+            case "join" -> handleJoin(sender, args);
+            case "leave" -> handleLeave(sender);
             case "stop" -> {
-                if (!sender.hasPermission("zombiewaves.stop")) {
+                if (!sender.hasPermission("zombiewaves.admin")) {
                     sender.sendMessage(plugin.getConfigManager().getPrefix() + 
                         plugin.getConfigManager().getMessage("no-permission"));
                     return true;
@@ -65,12 +52,14 @@ public class WaveCommand implements CommandExecutor, TabCompleter {
                 sender.sendMessage(plugin.getConfigManager().getPrefix() + "§cGame stopped!");
             }
             case "status" -> {
-                if (!plugin.getGameManager().isGameRunning()) {
+                if (sender instanceof Player player && plugin.getLobbyManager().isInArena(player)) {
+                    sendLobbyStatus(player);
+                } else if (plugin.getGameManager().isGameRunning()) {
+                    sendStatus(sender);
+                } else {
                     sender.sendMessage(plugin.getConfigManager().getPrefix() + 
-                        plugin.getConfigManager().getMessage("no-wave-running"));
-                    return true;
+                        "§cNo game in progress. Use /zwave join <arena> to play!");
                 }
-                sendStatus(sender);
             }
             case "shop" -> {
                 if (!(sender instanceof Player player)) {
@@ -105,10 +94,136 @@ public class WaveCommand implements CommandExecutor, TabCompleter {
             case "arenas" -> handleListArenas(sender);
             case "selectarena" -> handleSelectArena(sender, args);
             case "infoarena" -> handleInfoArena(sender, args);
+            case "setlobby" -> handleSetLobby(sender, args);
+            case "setspawn" -> handleSetSpawn(sender, args);
+            case "setexit" -> handleSetExit(sender);
             default -> sendHelp(sender);
         }
 
         return true;
+    }
+
+    private void handleJoin(CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(plugin.getConfigManager().getPrefix() + 
+                "§cThis command can only be used by players!");
+            return;
+        }
+        
+        if (args.length < 2) {
+            sender.sendMessage(plugin.getConfigManager().getPrefix() + 
+                "§cUsage: /zwave join <arenaName>");
+            sender.sendMessage("§7Available arenas:");
+            for (var arena : plugin.getArenaManager().getAllArenas()) {
+                String status = arena.isComplete() ? "§a✓" : "§c✗";
+                int players = plugin.getArenaManager().getPlayerCountInArena(arena.getName());
+                int max = plugin.getArenaManager().getMaxPlayersPerArena();
+                sender.sendMessage("  " + status + " §f" + arena.getName() + " §7(" + players + "/" + max + ")");
+            }
+            return;
+        }
+        
+        String arenaName = args[1];
+        plugin.getLobbyManager().joinArena(player, arenaName);
+    }
+
+    private void handleLeave(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(plugin.getConfigManager().getPrefix() + 
+                "§cThis command can only be used by players!");
+            return;
+        }
+        
+        plugin.getLobbyManager().leaveArena(player);
+    }
+
+    private void handleSetLobby(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("zombiewaves.admin")) {
+            sender.sendMessage(plugin.getConfigManager().getPrefix() + 
+                plugin.getConfigManager().getMessage("no-permission"));
+            return;
+        }
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(plugin.getConfigManager().getPrefix() + 
+                "§cThis command can only be used by players!");
+            return;
+        }
+        
+        if (args.length < 2) {
+            // Set global lobby
+            plugin.getArenaManager().setGlobalLobbyLocation(player.getLocation());
+            sender.sendMessage(plugin.getConfigManager().getPrefix() + 
+                "§aGlobal lobby set at your location!");
+        } else {
+            // Set arena-specific lobby
+            String arenaName = args[1].toLowerCase();
+            Arena arena = plugin.getArenaManager().getArena(arenaName);
+            if (arena == null) {
+                sender.sendMessage(plugin.getConfigManager().getPrefix() + 
+                    "§cArena '" + arenaName + "' does not exist!");
+                return;
+            }
+            plugin.getArenaManager().setArenaLobby(arenaName, player.getLocation());
+            sender.sendMessage(plugin.getConfigManager().getPrefix() + 
+                "§aLobby set for arena '" + arena.getName() + "'!");
+        }
+    }
+
+    private void handleSetSpawn(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("zombiewaves.admin")) {
+            sender.sendMessage(plugin.getConfigManager().getPrefix() + 
+                plugin.getConfigManager().getMessage("no-permission"));
+            return;
+        }
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(plugin.getConfigManager().getPrefix() + 
+                "§cThis command can only be used by players!");
+            return;
+        }
+        
+        if (args.length < 2) {
+            sender.sendMessage(plugin.getConfigManager().getPrefix() + 
+                "§cUsage: /zwave setspawn <arenaName>");
+            return;
+        }
+        
+        String arenaName = args[1].toLowerCase();
+        Arena arena = plugin.getArenaManager().getArena(arenaName);
+        if (arena == null) {
+            sender.sendMessage(plugin.getConfigManager().getPrefix() + 
+                "§cArena '" + arenaName + "' does not exist!");
+            return;
+        }
+        
+        plugin.getArenaManager().setArenaGameSpawn(arenaName, player.getLocation());
+        sender.sendMessage(plugin.getConfigManager().getPrefix() + 
+            "§aGame spawn set for arena '" + arena.getName() + "'!");
+    }
+
+    private void handleSetExit(CommandSender sender) {
+        if (!sender.hasPermission("zombiewaves.admin")) {
+            sender.sendMessage(plugin.getConfigManager().getPrefix() + 
+                plugin.getConfigManager().getMessage("no-permission"));
+            return;
+        }
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(plugin.getConfigManager().getPrefix() + 
+                "§cThis command can only be used by players!");
+            return;
+        }
+        
+        plugin.getArenaManager().setGlobalExitLocation(player.getLocation());
+        sender.sendMessage(plugin.getConfigManager().getPrefix() + 
+            "§aExit location set at your location!");
+    }
+
+    private void sendLobbyStatus(Player player) {
+        String arenaName = plugin.getLobbyManager().getPlayerArenaName(player);
+        
+        player.sendMessage("§6§l=== Lobby: " + arenaName + " ===");
+        player.sendMessage("§ePlayers: §f" + plugin.getLobbyManager().getPlayerCount(arenaName) + 
+            "§e/§f" + plugin.getLobbyManager().getMaxPlayers());
+        player.sendMessage("§eWaiting for players... (need 2 to start)");
     }
 
     private void handleSetPos1(CommandSender sender, String[] args) {
@@ -324,9 +439,10 @@ public class WaveCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage("§6§l=== Available Arenas ===");
         for (Arena arena : arenas) {
             String status = arena.isComplete() ? "§a✓" : "§c✗";
-            String active = arena.isActive() ? " §e[ACTIVE]" : "";
-            sender.sendMessage(status + " §f" + arena.getName() + active + 
-                " §7(" + arena.getSpawnPoints().size() + " spawns)");
+            int players = plugin.getArenaManager().getPlayerCountInArena(arena.getName());
+            int max = plugin.getArenaManager().getMaxPlayersPerArena();
+            sender.sendMessage(status + " §f" + arena.getName() + 
+                " §7(" + players + "/" + max + " players, " + arena.getSpawnPoints().size() + " spawns)");
         }
     }
 
@@ -376,19 +492,35 @@ public class WaveCommand implements CommandExecutor, TabCompleter {
             return;
         }
         
+        int players = plugin.getArenaManager().getPlayerCountInArena(arenaName);
+        int max = plugin.getArenaManager().getMaxPlayersPerArena();
+        
         sender.sendMessage("§6§l=== Arena: " + arena.getName() + " ===");
-        sender.sendMessage("§eStatus: §f" + (arena.isComplete() ? "§aComplete" : "§cIncomplete"));
+        sender.sendMessage("§ePlayers: §f" + players + "/" + max);
+        sender.sendMessage("§eStatus: §f" + (arena.isComplete() ? "§aReady" : "§cIncomplete"));
+        
+        if (arena.getLobbyLocation() != null) {
+            sender.sendMessage("§eLobby: §f" + formatLocation(arena.getLobbyLocation()));
+        } else {
+            sender.sendMessage("§eLobby: §cNot set");
+        }
+        
+        if (arena.getGameSpawnLocation() != null) {
+            sender.sendMessage("§eGame Spawn: §f" + formatLocation(arena.getGameSpawnLocation()));
+        } else {
+            sender.sendMessage("§eGame Spawn: §cNot set");
+        }
         
         if (arena.getPos1() != null) {
-            sender.sendMessage("§ePos1: §f" + formatLocation(arena.getPos1()));
+            sender.sendMessage("§eBoundary 1: §f" + formatLocation(arena.getPos1()));
         } else {
-            sender.sendMessage("§ePos1: §cNot set");
+            sender.sendMessage("§eBoundary 1: §cNot set");
         }
         
         if (arena.getPos2() != null) {
-            sender.sendMessage("§ePos2: §f" + formatLocation(arena.getPos2()));
+            sender.sendMessage("§eBoundary 2: §f" + formatLocation(arena.getPos2()));
         } else {
-            sender.sendMessage("§ePos2: §cNot set");
+            sender.sendMessage("§eBoundary 2: §cNot set");
         }
         
         sender.sendMessage("§eSpawn Points: §f" + arena.getSpawnPoints().size());
@@ -416,20 +548,22 @@ public class WaveCommand implements CommandExecutor, TabCompleter {
 
     private void sendHelp(CommandSender sender) {
         sender.sendMessage(plugin.getConfigManager().getPrefix() + "§eZombie Waves Commands:");
-        sender.sendMessage("§e/zwave start §7- Start the game");
-        sender.sendMessage("§e/zwave stop §7- Stop the game");
+        sender.sendMessage("§e/zwave join <arena> §7- Join an arena");
+        sender.sendMessage("§e/zwave leave §7- Leave the arena");
         sender.sendMessage("§e/zwave status §7- Show game status");
         sender.sendMessage("§e/zwave shop §7- Open the shop");
         sender.sendMessage("§e/zwave gold §7- Check your gold");
-        sender.sendMessage("§6§l=== Arena Commands ===");
         sender.sendMessage("§e/zwave arenas §7- List all arenas");
+        sender.sendMessage("§6§l=== Admin Commands ===");
         sender.sendMessage("§e/zwave createarena <name> §7- Create new arena");
-        sender.sendMessage("§e/zwave selectarena <name> §7- Select arena for game");
-        sender.sendMessage("§e/zwave infoarena <name> §7- Show arena info");
-        sender.sendMessage("§e/zwave deletearena <name> §7- Delete arena");
-        sender.sendMessage("§e/zwave setpos1 <arena> §7- Set corner 1 (look at block)");
-        sender.sendMessage("§e/zwave setpos2 <arena> §7- Set corner 2 (look at block)");
-        sender.sendMessage("§e/zwave addspawn <arena> §7- Add spawn point (look at block)");
+        sender.sendMessage("§e/zwave setlobby [arena] §7- Set lobby location");
+        sender.sendMessage("§e/zwave setspawn <arena> §7- Set game spawn");
+        sender.sendMessage("§e/zwave setexit §7- Set exit location");
+        sender.sendMessage("§e/zwave setpos1 <arena> §7- Set corner 1");
+        sender.sendMessage("§e/zwave setpos2 <arena> §7- Set corner 2");
+        sender.sendMessage("§e/zwave addspawn <arena> §7- Add spawn point");
+        sender.sendMessage("§e/zwave selectarena <name> §7- Select arena");
+        sender.sendMessage("§e/zwave stop §7- Stop the game");
     }
 
     private void sendStatus(CommandSender sender) {
@@ -445,20 +579,25 @@ public class WaveCommand implements CommandExecutor, TabCompleter {
         List<String> completions = new ArrayList<>();
         
         if (args.length == 1) {
-            completions.add("start");
-            completions.add("stop");
+            completions.add("join");
+            completions.add("leave");
             completions.add("status");
             completions.add("shop");
             completions.add("gold");
             completions.add("arenas");
-            completions.add("createarena");
-            completions.add("selectarena");
-            completions.add("infoarena");
-            completions.add("deletearena");
-            completions.add("setpos1");
-            completions.add("setpos2");
-            completions.add("addspawn");
-            completions.add("removespawn");
+            if (sender.hasPermission("zombiewaves.admin")) {
+                completions.add("createarena");
+                completions.add("deletearena");
+                completions.add("selectarena");
+                completions.add("setpos1");
+                completions.add("setpos2");
+                completions.add("addspawn");
+                completions.add("removespawn");
+                completions.add("setlobby");
+                completions.add("setspawn");
+                completions.add("setexit");
+                completions.add("stop");
+            }
             
             return completions.stream()
                 .filter(s -> s.toLowerCase().startsWith(args[0].toLowerCase()))
@@ -467,10 +606,11 @@ public class WaveCommand implements CommandExecutor, TabCompleter {
         
         if (args.length == 2) {
             String subCmd = args[0].toLowerCase();
-            if (subCmd.equals("setpos1") || subCmd.equals("setpos2") || 
+            if (subCmd.equals("join") || subCmd.equals("setpos1") || subCmd.equals("setpos2") || 
                 subCmd.equals("addspawn") || subCmd.equals("removespawn") ||
                 subCmd.equals("selectarena") || subCmd.equals("infoarena") ||
-                subCmd.equals("deletearena")) {
+                subCmd.equals("deletearena") || subCmd.equals("setlobby") ||
+                subCmd.equals("setspawn")) {
                 return plugin.getArenaManager().getAllArenas().stream()
                     .map(Arena::getName)
                     .filter(s -> s.toLowerCase().startsWith(args[1].toLowerCase()))

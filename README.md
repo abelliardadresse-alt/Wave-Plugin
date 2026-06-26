@@ -8,12 +8,13 @@ A **Call of Duty Zombies** inspired wave survival plugin for Minecraft 1.21.
 |---------|-------------|
 | 🌊 **Wave System** | Survive increasingly difficult waves of mobs |
 | 🗺️ **Arena System** | Create custom arenas with spawn points and boundaries |
+| 🎮 **Lobby System** | Join arenas with countdown, max 20 players |
+| 🚪 **Auto Teleport** | Lobby before game, exit after |
 | 🎲 **Random Spawning** | Mobs spawn at random locations with random types |
 | 📈 **Difficulty Scaling** | Health, damage, and speed increase each wave |
 | 🪙 **Gold System** | Earn gold by killing mobs |
 | 🛒 **Shop** | Buy weapons, armor, and upgrades |
 | 📋 **Scoreboard** | Side panel with wave, kills, gold, remaining mobs |
-| ⚙️ **Fully Configurable** | Customize everything in `config.yml` |
 
 ## 🎮 Supported Mobs
 - **Zombie** (60% spawn rate) - Base enemy
@@ -22,119 +23,85 @@ A **Call of Duty Zombies** inspired wave survival plugin for Minecraft 1.21.
 
 ## 📥 Installation
 
-1. Download `ZombieWaves-1.0.0.jar` from [Releases](../../releases)
+1. Download JAR from [Releases](../../releases)
 2. Place in server's `plugins/` folder
 3. Restart server
 
-## 🎯 Quick Setup
+## 🎯 Quick Setup (Admin)
 
-1. **Create an arena:**
+1. **Set lobby and exit locations** (where players spawn/return):
+   ```
+   /zwave setlobby         # At your location (global lobby)
+   /zwave setexit          # At your location (return point)
+   ```
+
+2. **Create an arena:**
    ```
    /zwave createarena mymap
    ```
 
-2. **Set arena boundaries** (look at blocks):
+3. **Set arena lobby** (optional - overrides global):
+   ```
+   /zwave setlobby mymap   # Set arena-specific lobby
+   ```
+
+4. **Set arena spawn** (where players go when game starts):
+   ```
+   /zwave setspawn mymap    # At your location
+   ```
+
+5. **Set arena boundaries** (optional):
    ```
    /zwave setpos1 mymap    # Look at corner 1
-   /zwave setpos2 mymap   # Look at corner 2
+   /zwave setpos2 mymap    # Look at corner 2
    ```
 
-3. **Add spawn points** (where mobs appear):
+6. **Add spawn points** (where mobs appear):
    ```
-   /zwave addspawn mymap   # Look at spawn location, repeat for multiple
-   ```
-
-4. **Select the arena and start:**
-   ```
-   /zwave selectarena mymap
-   /zwave start
+   /zwave addspawn mymap   # Look at spawn location, repeat
    ```
 
-## 📜 Commands
+## 🎮 Player Commands
 
-### Player Commands
 | Command | Description |
 |---------|-------------|
-| `/zwave start` | Start the game |
-| `/zwave stop` | Stop the game |
-| `/zwave status` | Show game status |
-| `/zwave shop` | Open the shop (or right-click with a compass) |
+| `/zwave join <arena>` | Join an arena (teleport to lobby) |
+| `/zwave leave` | Leave the arena (return to exit) |
+| `/zwave arenas` | List all available arenas |
+| `/zwave status` | Show game/lobby status |
+| `/zwave shop` | Open the shop |
 | `/zwave gold` | Check your gold balance |
 
-### Arena Commands (Admin)
+## 🛠 Admin Commands
+
 | Command | Description |
 |---------|-------------|
 | `/zwave createarena <name>` | Create a new arena |
 | `/zwave deletearena <name>` | Delete an arena |
-| `/zwave arenas` | List all arenas |
-| `/zwave selectarena <name>` | Select arena for the game |
 | `/zwave infoarena <name>` | Show arena details |
-| `/zwave setpos1 <arena>` | Set corner 1 (look at block) |
-| `/zwave setpos2 <arena>` | Set corner 2 (look at block) |
-| `/zwave addspawn <arena>` | Add spawn point (look at block) |
-| `/zwave removespawn <arena>` | Remove spawn point (look at block) |
-
-### Admin Commands
-| Command | Description |
-|---------|-------------|
-| `/zwaveadmin reload` | Reload configuration |
-| `/zwaveadmin forcewave` | Force start next wave |
+| `/zwave setlobby [arena]` | Set lobby location |
+| `/zwave setspawn <arena>` | Set game spawn point |
+| `/zwave setexit` | Set exit location |
+| `/zwave setpos1 <arena>` | Set boundary corner 1 |
+| `/zwave setpos2 <arena>` | Set boundary corner 2 |
+| `/zwave addspawn <arena>` | Add mob spawn point |
+| `/zwave removespawn <arena>` | Remove spawn point |
+| `/zwave stop` | Force stop the game |
 
 ## 🔑 Permissions
 
-- `zombiewaves.start` - Start the game
-- `zombiewaves.stop` - Stop the game
-- `zombiewaves.admin` - Arena commands and admin
+- `zombiewaves.admin` - All admin commands
 - `zombiewaves.shop` - Access to the shop
 
-## ⚙️ Configuration
+## 🎯 How It Works
 
-### General Settings (config.yml)
-```yaml
-general:
-  total-waves: 10        # Number of waves in a game
-  wave-delay: 30        # Seconds between waves
-  grace-period: 60       # Seconds before first wave
-```
-
-### Mob Types (config.yml)
-Configure mob types in `mob-types` section:
-- `zombie` - Basic zombie (60% spawn weight)
-- `skeleton` - Skeleton with bow (25% spawn weight)
-- `husk` - Husk zombie (15% spawn weight)
-
-### Shop Items (config.yml)
-```yaml
-shop:
-  items:
-    diamond-sword:
-      type: DIAMOND_SWORD
-      name: "&bDiamond Sword"
-      price: 150
-      enchantments:
-        - "DAMAGE_ALL:2"
-```
-
-### Scoreboard (config.yml)
-```yaml
-scoreboard:
-  title: "&6&lZOMBIE WAVES"
-  lines:
-    - "&eWave: &f{wave}/{max-wave}"
-    - "&6Kills: &f{kills}"
-    - "&6Gold: &f{gold}"
-    - "&aMobs: &f{remaining}"
-```
-
-## 📊 Placeholders
-
-Scoreboard supports these placeholders:
-- `{wave}` / `{manche}` - Current wave number
-- `{max-wave}` - Maximum waves
-- `{kills}` - Player's kill count
-- `{gold}` - Player's gold amount
-- `{remaining}` - Mobs remaining in wave
-- `{next-wave}` - Countdown to next wave
+1. **Players join:** `/zwave join mymap`
+2. **Teleport to lobby** at the arena's lobby location
+3. **Wait for players** (need 2+ to start, max 20)
+4. **Countdown** starts automatically when 2+ players
+5. **Game starts:** Players teleport to game spawn
+6. **Survive waves** of zombies, skeletons, and husks
+7. **Leave anytime:** `/zwave leave` returns you to exit
 
 ## 🔨 Building
 
@@ -142,9 +109,4 @@ Scoreboard supports these placeholders:
 mvn clean package
 ```
 
-The compiled JAR will be in `target/ZombieWaves-1.0.0.jar`
-
-## 📁 Files
-
-- `plugins/ZombieWaves/config.yml` - Main configuration
-- `plugins/ZombieWaves/arenas.yml` - Arena data (auto-saved)
+JAR in `target/ZombieWaves-1.0.0.jar`

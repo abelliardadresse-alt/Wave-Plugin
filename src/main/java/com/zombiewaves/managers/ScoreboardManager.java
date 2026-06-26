@@ -2,6 +2,7 @@ package com.zombiewaves.managers;
 
 import com.zombiewaves.ZombieWaves;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -37,6 +38,89 @@ public class ScoreboardManager {
             updateTask.cancel();
             updateTask = null;
         }
+    }
+
+    public void showLobbyScoreboard(Player player, String arenaName) {
+        Scoreboard scoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+        
+        String title = plugin.getConfigManager().colorize("§6§lZOMBIE WAVES");
+        Objective obj = scoreboard.registerNewObjective("zwlobby", Criteria.DUMMY, title);
+        obj.setDisplaySlot(DisplaySlot.SIDEBAR);
+        
+        int score = 15;
+        
+        // Arena name
+        Team arenaTeam = scoreboard.registerNewTeam("arena");
+        arenaTeam.addEntry(ChatColor.WHITE.toString());
+        arenaTeam.setPrefix(plugin.getConfigManager().colorize("§eArena: §f"));
+        arenaTeam.setSuffix(arenaName);
+        obj.getScore(ChatColor.WHITE.toString()).setScore(score--);
+        
+        // Players
+        Team playersTeam = scoreboard.registerNewTeam("players");
+        playersTeam.addEntry(ChatColor.YELLOW.toString());
+        playersTeam.setPrefix(plugin.getConfigManager().colorize("§ePlayers: §f"));
+        playersTeam.setSuffix("0/20");
+        obj.getScore(ChatColor.YELLOW.toString()).setScore(score--);
+        
+        // Countdown placeholder
+        Team countdownTeam = scoreboard.registerNewTeam("countdown");
+        countdownTeam.addEntry(ChatColor.GREEN.toString());
+        countdownTeam.setPrefix(plugin.getConfigManager().colorize("§eStarting: §f"));
+        countdownTeam.setSuffix("Waiting...");
+        obj.getScore(ChatColor.GREEN.toString()).setScore(score--);
+        
+        // Empty line
+        obj.getScore(" ").setScore(score--);
+        
+        // Info
+        Team infoTeam = scoreboard.registerNewTeam("info");
+        infoTeam.addEntry(ChatColor.AQUA.toString());
+        infoTeam.setPrefix(plugin.getConfigManager().colorize("§b/zwave leave §7"));
+        infoTeam.setSuffix(plugin.getConfigManager().colorize("to exit"));
+        obj.getScore(ChatColor.AQUA.toString()).setScore(score--);
+        
+        playerScoreboards.put(player.getUniqueId(), scoreboard);
+        player.setScoreboard(scoreboard);
+    }
+
+    public void updateLobbyScoreboard(Player player, String arenaName, int countdown) {
+        Scoreboard scoreboard = playerScoreboards.get(player.getUniqueId());
+        if (scoreboard == null) {
+            showLobbyScoreboard(player, arenaName);
+            scoreboard = playerScoreboards.get(player.getUniqueId());
+        }
+        
+        if (scoreboard == null) return;
+        
+        // Update player count
+        int playerCount = plugin.getLobbyManager().getPlayerCount(arenaName);
+        int maxPlayers = plugin.getLobbyManager().getMaxPlayers();
+        
+        Team playersTeam = scoreboard.getTeam("players");
+        if (playersTeam != null) {
+            playersTeam.setSuffix(playerCount + "/" + maxPlayers);
+        }
+        
+        // Update countdown
+        Team countdownTeam = scoreboard.getTeam("countdown");
+        if (countdownTeam != null) {
+            if (countdown > 0) {
+                countdownTeam.setSuffix(countdown + "s");
+            } else {
+                countdownTeam.setSuffix("Starting!");
+            }
+        }
+    }
+
+    public void showGameScoreboard(Player player) {
+        // Use existing scoreboard logic
+        createScoreboard(player);
+    }
+
+    public void clearScoreboard(Player player) {
+        playerScoreboards.remove(player.getUniqueId());
+        player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
     }
 
     public void createScoreboard(Player player) {

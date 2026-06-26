@@ -9,6 +9,7 @@ import com.zombiewaves.listeners.PlayerDeathListener;
 import com.zombiewaves.listeners.PlayerInteractListener;
 import com.zombiewaves.managers.ArenaManager;
 import com.zombiewaves.managers.GameManager;
+import com.zombiewaves.managers.LobbyManager;
 import com.zombiewaves.managers.ShopManager;
 import com.zombiewaves.managers.ScoreboardManager;
 import com.zombiewaves.managers.WaveManager;
@@ -24,6 +25,7 @@ public class ZombieWaves extends JavaPlugin {
     private WaveManager waveManager;
     private ShopManager shopManager;
     private ScoreboardManager scoreboardManager;
+    private LobbyManager lobbyManager;
 
     @Override
     public void onEnable() {
@@ -42,6 +44,7 @@ public class ZombieWaves extends JavaPlugin {
         waveManager = new WaveManager(this);
         shopManager = new ShopManager(this);
         scoreboardManager = new ScoreboardManager(this);
+        lobbyManager = new LobbyManager(this);
         
         // Register commands
         getCommand("zwave").setExecutor(new WaveCommand(this));
@@ -62,6 +65,11 @@ public class ZombieWaves extends JavaPlugin {
         // Stop any running game
         if (gameManager != null && gameManager.isGameRunning()) {
             gameManager.stopGame();
+        }
+        
+        // Remove all players from lobby
+        if (lobbyManager != null) {
+            lobbyManager.removeAllPlayers();
         }
         
         // Save arenas
@@ -107,5 +115,9 @@ public class ZombieWaves extends JavaPlugin {
 
     public ScoreboardManager getScoreboardManager() {
         return scoreboardManager;
+    }
+
+    public LobbyManager getLobbyManager() {
+        return lobbyManager;
     }
 }
