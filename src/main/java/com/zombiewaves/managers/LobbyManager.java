@@ -5,7 +5,12 @@ import com.zombiewaves.utils.Arena;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
@@ -78,18 +83,49 @@ public class LobbyManager {
         player.sendMessage(plugin.getConfigManager().getPrefix() + 
             "§aYou joined arena '" + arena.getName() + "'!");
         player.sendMessage(plugin.getConfigManager().getPrefix() + 
-            "§eUse §f/zwave leave §eto exit the arena.");
+            "§eUse §f/zwave leave §e to exit the arena.");
         
         playersInLobby.add(player.getUniqueId());
         plugin.getArenaManager().setPlayerArena(player.getUniqueId(), arenaName);
         
+        // Clear inventory and give lobby items
+        player.getInventory().clear();
+        giveLobbyItems(player);
+        
         // Update scoreboard
         plugin.getScoreboardManager().showLobbyScoreboard(player, arenaName);
         
-        // Start countdown if enough players
+        // Start countdown (1+ players now)
         checkAndStartCountdown(arenaName);
         
         return true;
+    }
+
+    private void giveLobbyItems(Player player) {
+        // Diamond for admin to force start
+        if (player.hasPermission("zombiewaves.admin")) {
+            ItemStack diamond = new ItemStack(Material.DIAMOND);
+            ItemMeta meta = diamond.getItemMeta();
+            meta.setDisplayName(plugin.getConfigManager().colorize("§b§lFORCE START"));
+            meta.addEnchant(Enchantment.UNBREAKING, 1, true);
+            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS);
+            List<String> lore = new ArrayList<>();
+            lore.add(plugin.getConfigManager().colorize("§7Click to start the game"));
+            lore.add(plugin.getConfigManager().colorize("§7immediately (admin only)"));
+            meta.setLore(lore);
+            diamond.setItemMeta(meta);
+            player.getInventory().setItem(4, diamond); // Center slot
+        }
+        
+        // Compass to show way (optional)
+        ItemStack compass = new ItemStack(Material.COMPASS);
+        ItemMeta compassMeta = compass.getItemMeta();
+        compassMeta.setDisplayName(plugin.getConfigManager().colorize("§e§lArena Navigator"));
+        List<String> compassLore = new ArrayList<>();
+        compassLore.add(plugin.getConfigManager().colorize("§7Points to arena center"));
+        compassMeta.setLore(compassLore);
+        compass.setItemMeta(compassMeta);
+        player.getInventory().setItem(8, compass); // Right slot
     }
 
     public boolean leaveArena(Player player) {
@@ -151,8 +187,8 @@ public class LobbyManager {
     private void checkAndStartCountdown(String arenaName) {
         int playerCount = getPlayerCount(arenaName);
         
-        // Start countdown only if 2+ players
-        if (playerCount >= 2 && !arenaCountdowns.containsKey(arenaName)) {
+        // Start countdown if 1+ players (solo play enabled)
+        if (playerCount >= 1 && !arenaCountdowns.containsKey(arenaName)) {
             startArenaCountdown(arenaName);
         }
     }
@@ -172,6 +208,8 @@ public class LobbyManager {
         Arena arena = plugin.getArenaManager().getArena(arenaName);
         if (arena == null) return;
         
+        int playerCount = getPlayerCount(arenaName);
+        
         BukkitRunnable countdown = new BukkitRunnable() {
             int seconds = LOBBY_COUNTDOWN;
             
@@ -185,11 +223,11 @@ public class LobbyManager {
                     return;
                 }
                 
-                // Check if still enough players
-                if (getPlayerCount(arenaName) < 2) {
+                // Check if still have players (solo = 1 player minimum)
+                if (getPlayerCount(arenaName) < 1) {
                     stopArenaCountdown(arenaName);
                     broadcastToArena(arenaName, plugin.getConfigManager().getPrefix() + 
-                        "§cNot enough players! Countdown stopped.");
+                        "§cNo players left! Countdown stopped.");
                     cancel();
                     return;
                 }
@@ -210,8 +248,14 @@ public class LobbyManager {
         arenaCountdowns.put(arenaName, countdown);
         countdown.runTaskTimer(plugin, 20L, 20L);
         
-        broadcastToArena(arenaName, plugin.getConfigManager().getPrefix() + 
-            "§aEnough players! Starting countdown...");
+        // Different message for solo vs multiplayer
+        if (playerCount == 1) {
+            broadcastToArena(arenaName, plugin.getConfigManager().getPrefix() + 
+                "§eSolo play enabled! Starting countdown...");
+        } else {
+            broadcastToArena(arenaName, plugin.getConfigManager().getPrefix() + 
+                "§aEnough players! Starting countdown...");
+        }
     }
 
     private void stopArenaCountdown(String arenaName) {
@@ -219,6 +263,14 @@ public class LobbyManager {
         if (countdown != null) {
             countdown.cancel();
         }
+    }
+
+    public void stopArenaCountdownForAdmin(String arenaName) {
+        stopArenaCountdown(arenaName);
+    }
+
+    public void startGameNow(String arenaName) {
+        startGame(arenaName);
     }
 
     private void startGame(String arenaName) {

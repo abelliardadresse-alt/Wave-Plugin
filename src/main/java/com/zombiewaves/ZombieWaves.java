@@ -7,6 +7,7 @@ import com.zombiewaves.listeners.EntitySpawnListener;
 import com.zombiewaves.listeners.PlayerJoinListener;
 import com.zombiewaves.listeners.PlayerDeathListener;
 import com.zombiewaves.listeners.PlayerInteractListener;
+import com.zombiewaves.listeners.LobbyListener;
 import com.zombiewaves.managers.ArenaManager;
 import com.zombiewaves.managers.GameManager;
 import com.zombiewaves.managers.LobbyManager;
@@ -56,6 +57,7 @@ public class ZombieWaves extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerDeathListener(this), this);
         getServer().getPluginManager().registerEvents(new PlayerInteractListener(this), this);
+        getServer().getPluginManager().registerEvents(new LobbyListener(this), this);
         
         getLogger().info("ZombieWaves has been enabled!");
     }
