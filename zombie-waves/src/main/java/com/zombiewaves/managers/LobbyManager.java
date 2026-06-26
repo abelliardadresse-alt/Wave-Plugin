@@ -22,6 +22,7 @@ public class LobbyManager {
     private final Map<UUID, Location> playerPreviousLocations;
     private final Map<UUID, Integer> lobbyCountdowns;
     private final Map<String, BukkitRunnable> arenaCountdowns;
+    private final Map<String, Integer> arenaCountdownSeconds;
     
     private static final int LOBBY_COUNTDOWN = 10; // seconds before game starts
 
@@ -31,6 +32,7 @@ public class LobbyManager {
         this.playerPreviousLocations = new HashMap<>();
         this.lobbyCountdowns = new HashMap<>();
         this.arenaCountdowns = new HashMap<>();
+        this.arenaCountdownSeconds = new HashMap<>();
     }
 
     public boolean joinArena(Player player, String arenaName) {
@@ -212,10 +214,14 @@ public class LobbyManager {
             
             @Override
             public void run() {
+                // Track current countdown
+                arenaCountdownSeconds.put(arenaName, seconds);
+                
                 if (seconds <= 0) {
                     // Start the game
-                    startGame(arenaName);
+                    arenaCountdownSeconds.remove(arenaName);
                     arenaCountdowns.remove(arenaName);
+                    startGame(arenaName);
                     cancel();
                     return;
                 }
@@ -398,5 +404,9 @@ public class LobbyManager {
     
     public int getLobbyPlayerCount() {
         return playersInLobby.size();
+    }
+    
+    public Integer getCountdown(String arenaName) {
+        return arenaCountdownSeconds.get(arenaName);
     }
 }

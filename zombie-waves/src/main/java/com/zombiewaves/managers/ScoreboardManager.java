@@ -220,10 +220,85 @@ public class ScoreboardManager {
         for (UUID uuid : new ArrayList<>(playerScoreboards.keySet())) {
             Player player = Bukkit.getPlayer(uuid);
             if (player != null && player.isOnline()) {
-                updateScoreboard(player);
+                Scoreboard scoreboard = playerScoreboards.get(uuid);
+                if (scoreboard != null) {
+                    // Check which type of scoreboard this is
+                    Objective obj = scoreboard.getObjective("zombiewaves");
+                    if (obj != null) {
+                        // Game scoreboard - use the update logic
+                        updateGameScoreboardContent(player, scoreboard, obj);
+                    } else {
+                        Objective lobbyObj = scoreboard.getObjective("zwlobby");
+                        if (lobbyObj != null) {
+                            // Lobby scoreboard - update lobby info
+                            updateLobbyScoreboardContent(player, scoreboard, lobbyObj);
+                        }
+                    }
+                }
             } else {
                 // Remove scoreboard for offline players
                 playerScoreboards.remove(uuid);
+            }
+        }
+    }
+    
+    private void updateGameScoreboardContent(Player player, Scoreboard scoreboard, Objective obj) {
+        String arenaName = plugin.getArenaManager().getPlayerArena(player.getUniqueId());
+        if (arenaName == null) return;
+        
+        // Get lines from config
+        List<String> lines = plugin.getConfig().getStringList("scoreboard.lines");
+        
+        int score = lines.size();
+        for (String line : lines) {
+            String processedLine = processPlaceholders(player, line, arenaName);
+            String entry = "§r" + processedLine + "§r";
+            String teamName = "line_" + score;
+            
+            Team team = scoreboard.getTeam(teamName);
+            if (team == null) {
+                team = scoreboard.registerNewTeam(teamName);
+            }
+            
+            // Get current entry for this team
+            Set<String> entries = team.getEntries();
+            if (entries.isEmpty()) {
+                team.addEntry(entry);
+                obj.getScore(entry).setScore(score);
+            } else {
+                String currentEntry = entries.iterator().next();
+                if (!currentEntry.equals(entry)) {
+                    team.removeEntry(currentEntry);
+                    obj.getScore(currentEntry).setScore(0);
+                    team.addEntry(entry);
+                    obj.getScore(entry).setScore(score);
+                }
+            }
+            score--;
+        }
+    }
+    
+    private void updateLobbyScoreboardContent(Player player, Scoreboard scoreboard, Objective obj) {
+        String arenaName = plugin.getArenaManager().getPlayerArena(player.getUniqueId());
+        if (arenaName == null) return;
+        
+        // Update player count
+        int playerCount = plugin.getLobbyManager().getPlayerCount(arenaName);
+        int maxPlayers = plugin.getLobbyManager().getMaxPlayers();
+        
+        Team playersTeam = scoreboard.getTeam("players");
+        if (playersTeam != null) {
+            playersTeam.setSuffix(playerCount + "/" + maxPlayers);
+        }
+        
+        // Update countdown if available
+        Team countdownTeam = scoreboard.getTeam("countdown");
+        if (countdownTeam != null) {
+            Integer countdown = plugin.getLobbyManager().getCountdown(arenaName);
+            if (countdown != null && countdown > 0) {
+                countdownTeam.setSuffix(countdown + "s");
+            } else {
+                countdownTeam.setSuffix("Starting...");
             }
         }
     }
@@ -273,12 +348,15 @@ public class ScoreboardManager {
     }
 
     public void onGameStart(String arenaName) {
+        // Make sure updates are running
+        stopScoreboardUpdates();
         startScoreboardUpdates();
+        
         // Create scoreboards for players in this arena
         for (UUID playerId : plugin.getArenaManager().getPlayersInArena(arenaName)) {
             Player player = Bukkit.getPlayer(playerId);
             if (player != null && player.isOnline()) {
-                createScoreboard(player, arenaName);
+                showGameScoreboard(player, arenaName);
             }
         }
     }
