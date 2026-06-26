@@ -116,16 +116,6 @@ public class LobbyManager {
             diamond.setItemMeta(meta);
             player.getInventory().setItem(4, diamond); // Center slot
         }
-        
-        // Compass to show way (optional)
-        ItemStack compass = new ItemStack(Material.COMPASS);
-        ItemMeta compassMeta = compass.getItemMeta();
-        compassMeta.setDisplayName(plugin.getConfigManager().colorize("§e§lArena Navigator"));
-        List<String> compassLore = new ArrayList<>();
-        compassLore.add(plugin.getConfigManager().colorize("§7Points to arena center"));
-        compassMeta.setLore(compassLore);
-        compass.setItemMeta(compassMeta);
-        player.getInventory().setItem(8, compass); // Right slot
     }
 
     public boolean leaveArena(Player player) {
