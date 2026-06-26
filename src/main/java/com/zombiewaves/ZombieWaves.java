@@ -14,7 +14,9 @@ import com.zombiewaves.managers.LobbyManager;
 import com.zombiewaves.managers.ShopManager;
 import com.zombiewaves.managers.ScoreboardManager;
 import com.zombiewaves.managers.WaveManager;
+import com.zombiewaves.utils.Arena;
 import com.zombiewaves.utils.ConfigManager;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class ZombieWaves extends JavaPlugin {
@@ -31,6 +33,9 @@ public class ZombieWaves extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        
+        // Register Arena serialization
+        ConfigurationSerialization.registerClass(Arena.class, "Arena");
         
         // Save default configs
         saveDefaultConfig();
