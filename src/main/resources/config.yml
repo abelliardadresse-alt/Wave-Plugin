@@ -14,15 +14,22 @@ general:
 
 # Wave settings
 waves:
-  # Base number of zombies per wave (formula: base + (wave * multiplier))
+  # Base number of mobs per wave (before player scaling)
   base-mobs: 5
+  # Additional mobs added per wave
   mob-increase-per-wave: 3
+  # Player scaling: multiplier applied per player (1.0 = +100% per player)
+  # Example: base=10, multiplier=0.5, 3 players = 10 + (10 * 0.5 * 3) = 25 mobs
+  player-scaling-multiplier: 0.5
+  # Minimum players for scaling (at least 1 player always)
+  min-players-for-scaling: 1
   # Spawn delay between each mob in ticks (20 ticks = 1 second)
   spawn-delay: 10
   # Maximum mobs that can be alive at once
   max-active-mobs: 15
 
 # Mob types and their properties
+# The spawn-weight determines the percentage of each mob type
 mob-types:
   zombie:
     entity-type: ZOMBIE

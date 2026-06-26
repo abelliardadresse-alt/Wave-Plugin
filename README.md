@@ -110,3 +110,53 @@ mvn clean package
 ```
 
 JAR in `target/ZombieWaves-1.0.0.jar`
+
+## ⚙️ Configuration (config.yml)
+
+### Wave & Mob Scaling
+```yaml
+waves:
+  base-mobs: 5                    # Base mobs per wave
+  mob-increase-per-wave: 3        # Additional mobs per wave
+  player-scaling-multiplier: 0.5  # Mob scaling per player (0.5 = +50% per player)
+  min-players-for-scaling: 1      # Minimum players for scaling
+  spawn-delay: 10                 # Ticks between spawns (20 = 1 second)
+  max-active-mobs: 15              # Max mobs alive at once
+```
+
+**Mob Scaling Formula:**
+```
+mobs = (baseMobs + wave * increase) * (1 + multiplier * players)
+```
+
+**Example:** `base=5, increase=3, multiplier=0.5`
+- Wave 3, 1 player: `(5 + 9) * (1 + 0.5) = 21 mobs`
+- Wave 3, 4 players: `(5 + 9) * (1 + 2.0) = 42 mobs`
+
+### Mob Types (% = spawn weight)
+```yaml
+mob-types:
+  zombie:
+    entity-type: ZOMBIE
+    base-health: 20.0
+    gold-per-kill: 5
+    spawn-weight: 60    # 60%
+  skeleton:
+    entity-type: SKELETON
+    base-health: 16.0
+    gold-per-kill: 7
+    spawn-weight: 25    # 25%
+  husk:
+    entity-type: HUSK
+    base-health: 24.0
+    gold-per-kill: 6
+    spawn-weight: 15    # 15%
+```
+
+### Difficulty Scaling
+```yaml
+difficulty:
+  health-multiplier: 0.15    # +15% health per wave
+  damage-multiplier: 0.10    # +10% damage per wave
+  speed-multiplier: 0.05     # +5% speed per wave (capped)
+```

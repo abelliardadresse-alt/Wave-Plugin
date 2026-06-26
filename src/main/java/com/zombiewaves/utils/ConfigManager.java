@@ -69,6 +69,32 @@ public class ConfigManager {
         return config.getInt("waves.max-active-mobs", 15);
     }
 
+    public double getPlayerScalingMultiplier() {
+        return config.getDouble("waves.player-scaling-multiplier", 0.5);
+    }
+
+    public int getMinPlayersForScaling() {
+        return config.getInt("waves.min-players-for-scaling", 1);
+    }
+
+    /**
+     * Calculate mob count for a wave based on wave number and player count.
+     * Formula: baseMobs + (wave * mobIncreasePerWave) * (1 + (playerScalingMultiplier * effectivePlayers))
+     */
+    public int getMobCountForWave(int wave, int playerCount) {
+        int effectivePlayers = Math.max(playerCount, getMinPlayersForScaling());
+        double baseCount = getBaseMobs() + (wave * getMobIncreasePerWave());
+        double scalingFactor = 1.0 + (getPlayerScalingMultiplier() * effectivePlayers);
+        return (int) Math.ceil(baseCount * scalingFactor);
+    }
+
+    /**
+     * Calculate mob count for a wave (legacy, uses player count of 1)
+     */
+    public int getMobCountForWave(int wave) {
+        return getMobCountForWave(wave, 1);
+    }
+
     // Difficulty settings
     public double getHealthMultiplier() {
         return config.getDouble("difficulty.health-multiplier", 0.15);
@@ -168,11 +194,6 @@ public class ConfigManager {
         }
         
         return mobTypes.get(0);
-    }
-
-    // Calculate mob count for a wave
-    public int getMobCountForWave(int wave) {
-        return getBaseMobs() + (wave * getMobIncreasePerWave());
     }
 
     // Messages

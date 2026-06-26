@@ -40,17 +40,30 @@ public class WaveManager {
         currentWaveNumber = waveNumber;
         waveInProgress = true;
         
-        // Calculate total mobs for this wave
-        mobsToSpawn = plugin.getConfigManager().getMobCountForWave(waveNumber);
+        // Get player count from arena players
+        int playerCount = getPlayerCountInArena();
+        
+        // Calculate total mobs for this wave based on player count
+        mobsToSpawn = plugin.getConfigManager().getMobCountForWave(waveNumber, playerCount);
         mobsSpawned = 0;
         
-        // Broadcast wave start
+        // Broadcast wave start with player info
+        String waveMsg = plugin.getConfigManager().getMessage("wave-start")
+            .replace("{wave}", String.valueOf(waveNumber));
+        Bukkit.broadcastMessage(plugin.getConfigManager().getPrefix() + waveMsg);
+        
+        // Announce mob count
         Bukkit.broadcastMessage(plugin.getConfigManager().getPrefix() + 
-            plugin.getConfigManager().getMessage("wave-start")
-                .replace("{wave}", String.valueOf(waveNumber)));
+            "§e" + mobsToSpawn + " mobs incoming! (§7" + playerCount + " players§e)");
         
         // Start spawning mobs with delay
         startSpawning();
+    }
+
+    private int getPlayerCountInArena() {
+        String arenaName = plugin.getGameManager().getSelectedArena();
+        if (arenaName == null) return 1;
+        return Math.max(1, plugin.getArenaManager().getPlayerCountInArena(arenaName));
     }
 
     private void startSpawning() {
