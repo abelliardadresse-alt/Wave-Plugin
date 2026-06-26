@@ -93,10 +93,10 @@ public class WaveManager {
     }
 
     private void spawnMob() {
-        // Get random spawn point
-        List<Location> spawnPoints = getRandomizedSpawnPoints();
+        // Get spawn points from arena
+        List<Location> spawnPoints = getArenaSpawnPoints();
         if (spawnPoints.isEmpty()) {
-            plugin.getLogger().warning("No spawn points configured!");
+            plugin.getLogger().warning("No spawn points in selected arena!");
             return;
         }
         
@@ -125,6 +125,20 @@ public class WaveManager {
         }
     }
 
+    private List<Location> getArenaSpawnPoints() {
+        String arenaName = plugin.getGameManager().getSelectedArena();
+        if (arenaName == null) {
+            return new ArrayList<>();
+        }
+        
+        var arena = plugin.getArenaManager().getArena(arenaName);
+        if (arena == null) {
+            return new ArrayList<>();
+        }
+        
+        return arena.getSpawnPoints();
+    }
+
     private void applyDifficultyScaling(LivingEntity entity, ConfigManager.MobTypeConfig mobType) {
         int wave = currentWaveNumber;
         
@@ -147,33 +161,6 @@ public class WaveManager {
         
         // Note: Speed modification requires NMS or attributes
         // For simplicity, we'll rely on the default speed
-    }
-
-    public List<Location> getRandomizedSpawnPoints() {
-        // Get configured spawn points
-        List<String> mapNames = plugin.getConfigManager().getSpawnPointMaps();
-        List<Location> allPoints = new ArrayList<>();
-        
-        for (String mapName : mapNames) {
-            allPoints.addAll(plugin.getConfigManager().getSpawnPoints(mapName));
-        }
-        
-        // If no points configured, create some default ones around spawn
-        if (allPoints.isEmpty()) {
-            Location spawnLoc = Bukkit.getWorlds().get(0).getSpawnLocation();
-            // Create a ring of spawn points around spawn
-            for (int i = 0; i < 8; i++) {
-                double angle = i * (Math.PI * 2 / 8);
-                double x = spawnLoc.getX() + Math.cos(angle) * 20;
-                double z = spawnLoc.getZ() + Math.sin(angle) * 20;
-                allPoints.add(new Location(spawnLoc.getWorld(), x, spawnLoc.getY() + 1, z));
-            }
-        }
-        
-        // Shuffle for randomization
-        Collections.shuffle(allPoints);
-        
-        return allPoints;
     }
 
     public void onMobKilled(UUID mobId) {

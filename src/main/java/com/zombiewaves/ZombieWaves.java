@@ -7,6 +7,7 @@ import com.zombiewaves.listeners.EntitySpawnListener;
 import com.zombiewaves.listeners.PlayerJoinListener;
 import com.zombiewaves.listeners.PlayerDeathListener;
 import com.zombiewaves.listeners.PlayerInteractListener;
+import com.zombiewaves.managers.ArenaManager;
 import com.zombiewaves.managers.GameManager;
 import com.zombiewaves.managers.ShopManager;
 import com.zombiewaves.managers.ScoreboardManager;
@@ -18,6 +19,7 @@ public class ZombieWaves extends JavaPlugin {
 
     private static ZombieWaves instance;
     private ConfigManager configManager;
+    private ArenaManager arenaManager;
     private GameManager gameManager;
     private WaveManager waveManager;
     private ShopManager shopManager;
@@ -27,13 +29,15 @@ public class ZombieWaves extends JavaPlugin {
     public void onEnable() {
         instance = this;
         
-        // Save default config
+        // Save default configs
         saveDefaultConfig();
+        saveResource("arenas.yml", false);
         
         // Initialize config manager
         configManager = new ConfigManager(this);
         
         // Initialize managers
+        arenaManager = new ArenaManager(this);
         gameManager = new GameManager(this);
         waveManager = new WaveManager(this);
         shopManager = new ShopManager(this);
@@ -60,12 +64,18 @@ public class ZombieWaves extends JavaPlugin {
             gameManager.stopGame();
         }
         
+        // Save arenas
+        if (arenaManager != null) {
+            arenaManager.saveArenas();
+        }
+        
         getLogger().info("ZombieWaves has been disabled!");
     }
 
     public void reloadPlugin() {
         reloadConfig();
         configManager.reload();
+        arenaManager.loadArenas();
         if (gameManager != null) {
             gameManager.reload();
         }
@@ -77,6 +87,10 @@ public class ZombieWaves extends JavaPlugin {
 
     public ConfigManager getConfigManager() {
         return configManager;
+    }
+
+    public ArenaManager getArenaManager() {
+        return arenaManager;
     }
 
     public GameManager getGameManager() {

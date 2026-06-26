@@ -1,0 +1,14 @@
+# ZombieWaves Arenas Configuration
+# Add your arenas below using the format shown
+# This file is auto-generated. Use in-game commands to create arenas.
+
+arenas:
+  # Example arena (delete this and create your own):
+  # example:
+  #   name: example
+  #   pos1: "world:0:64:0:0:0"
+  #   pos2: "world:100:80:100:0:0"
+  #   spawnPoints:
+  #     - "world:50:65:50:0:0"
+  #     - "world:50:65:-50:0:0"
+  #   active: false

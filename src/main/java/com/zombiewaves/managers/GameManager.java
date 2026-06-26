@@ -15,6 +15,7 @@ public class GameManager {
     private final ZombieWaves plugin;
     private boolean gameRunning = false;
     private int currentWave = 0;
+    private String selectedArena = null;
     private final Map<UUID, PlayerData> playerDataMap = new HashMap<>();
     private BukkitRunnable countdownTask;
     private int countdownSeconds;
@@ -31,8 +32,22 @@ public class GameManager {
         return gameRunning;
     }
 
+    public String getSelectedArena() {
+        return selectedArena;
+    }
+
+    public void setSelectedArena(String arenaName) {
+        this.selectedArena = arenaName;
+    }
+
     public void startGame() {
         if (gameRunning) return;
+        
+        // Check if arena is selected
+        if (selectedArena == null) {
+            plugin.getLogger().warning("No arena selected! Use /zwave selectarena <name>");
+            return;
+        }
         
         gameRunning = true;
         currentWave = 0;
