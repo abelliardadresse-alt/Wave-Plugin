@@ -288,6 +288,7 @@ public class LobbyManager {
                 Player player = Bukkit.getPlayer(playerId);
                 if (player != null && player.isOnline()) {
                     player.teleport(gameSpawn);
+                    giveGameItems(player);
                     plugin.getScoreboardManager().showGameScoreboard(player, arenaName);
                 }
             }
@@ -303,6 +304,45 @@ public class LobbyManager {
         // Start the game
         plugin.getArenaManager().setActiveArena(arenaName);
         plugin.getGameManager().startGame(arenaName);
+    }
+
+    private void giveGameItems(Player player) {
+        // Clear inventory and give starter items
+        player.getInventory().clear();
+        
+        // Give stone sword
+        ItemStack sword = new ItemStack(Material.STONE_SWORD);
+        ItemMeta meta = sword.getItemMeta();
+        meta.setDisplayName(plugin.getConfigManager().colorize("§7Épée de Pierre"));
+        meta.addEnchant(Enchantment.getByKey(org.bukkit.NamespacedKey.minecraft("sharpness")), 1, true);
+        meta.setUnbreakable(true);
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_UNBREAKABLE);
+        sword.setItemMeta(meta);
+        player.getInventory().setItem(0, sword);
+        
+        // Give some steaks for food
+        ItemStack food = new ItemStack(Material.COOKED_BEEF, 16);
+        player.getInventory().setItem(8, food);
+        
+        // Give a bow
+        ItemStack bow = new ItemStack(Material.BOW);
+        ItemMeta bowMeta = bow.getItemMeta();
+        bowMeta.addEnchant(Enchantment.getByKey(org.bukkit.NamespacedKey.minecraft("power")), 1, true);
+        bowMeta.setUnbreakable(true);
+        bowMeta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
+        bow.setItemMeta(bowMeta);
+        player.getInventory().setItem(1, bow);
+        
+        // Give 16 arrows
+        ItemStack arrows = new ItemStack(Material.ARROW, 16);
+        player.getInventory().setItem(2, arrows);
+        
+        // Set full health
+        player.setHealth(player.getMaxHealth());
+        player.setFoodLevel(20);
+        
+        player.sendMessage(plugin.getConfigManager().getPrefix() + 
+            "§aTu as reçu ton équipement de départ! §7(Épée + Arc + 16 Flèches)");
     }
 
     public void broadcastToArena(String arenaName, String message) {

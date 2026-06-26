@@ -2,6 +2,8 @@ package com.zombiewaves.listeners;
 
 import com.zombiewaves.ZombieWaves;
 import com.zombiewaves.utils.ConfigManager;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -9,6 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Arrays;
 import java.util.List;
@@ -77,13 +80,30 @@ public class EntityDeathListener implements Listener {
             
             plugin.getGameManager().addGold(killer, goldReward);
             
-            // Drop gold item
-            event.getDrops().clear(); // Clear default drops
+            // Drop gold items on the ground
+            dropGoldItems(event.getEntity().getLocation(), goldReward);
+            
+            // Clear default drops (but we've already added gold drops)
+            event.getDrops().clear();
+            
+            // Send message to player
+            killer.sendMessage(plugin.getConfigManager().getPrefix() + 
+                "§6+" + goldReward + " or §7(§e" + plugin.getGameManager().getPlayerGold(killer) + "§7 total)");
         }
         
         // Notify wave manager that mob was killed
         if (arenaName != null) {
             plugin.getWaveManager().onMobKilled(arenaName, mobId);
+        }
+    }
+    
+    private void dropGoldItems(Location location, int amount) {
+        // Drop gold nuggets (1 nugget = 1 gold)
+        while (amount > 0) {
+            int stackSize = Math.min(amount, 64);
+            ItemStack gold = new ItemStack(Material.GOLD_NUGGET, stackSize);
+            location.getWorld().dropItemNaturally(location, gold);
+            amount -= stackSize;
         }
     }
     
